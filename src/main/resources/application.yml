@@ -1,0 +1,52 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api/
+
+spring:
+  application:
+    name: chama7v
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/chama7v_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: root
+    password: admin
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        format_sql: true
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${EMAIL_USERNAME:kuriaerick8@gmail.com}
+    password: ${EMAIL_PASSWORD:wrqrhtnjzsjszebi}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+jwt:
+  secret: ${JWT_SECRET:mySuperSuperLongJwtSecretKeyForHS512AlgorithmThatHasMoreThanSixtyFourCharacters1234567890}
+  expiration: 86400000 # 24 hours
+
+mpesa:
+  consumer-key: ${MPESA_CONSUMER_KEY:2bvPLI5K3BABqgsxlPLCMNLVONqJ1ZMzmpLmDntyaITRiu8d}
+  consumer-secret: ${MPESA_CONSUMER_SECRET:eckzeceHXutQxGtkUVMdvFbQ0S0aDsBZfiP3mDYwyuf0Aix6AxEEYMh8Jmun1JXG}
+  shortcode: ${MPESA_SHORTCODE:174379}
+  passkey: ${MPESA_PASSKEY:passkey}
+  callback-url: ${MPESA_CALLBACK_URL:https://domain.com/api/v1/mpesa/callback}
+  base-url: https://sandbox.safaricom.co.ke
+
+logging:
+  level:
+    com.chama7v: DEBUG
+    org.springframework.security: DEBUG
