@@ -13,7 +13,6 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 @Entity
 @Table(name = "members")
@@ -25,10 +24,10 @@ public class Member {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true, nullable = false, length = 4)
     private String memberNumber;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true, length = 8)
     private String nationalId;
 
     @Column(nullable = false)
@@ -41,7 +40,6 @@ public class Member {
     private String phone;
 
     @JsonIgnore
-    @Column(nullable = false)
     private String password;
 
     @Enumerated(EnumType.STRING)
@@ -50,7 +48,7 @@ public class Member {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private MemberStatus status = MemberStatus.ACTIVE;
+    private MemberStatus status = MemberStatus.pending;
 
     @Column(name = "total_contributions", precision = 19, scale = 2)
     private BigDecimal totalContributions = BigDecimal.ZERO;
@@ -58,17 +56,14 @@ public class Member {
     @Column(name = "outstanding_loan", precision = 19, scale = 2)
     private BigDecimal outstandingLoan = BigDecimal.ZERO;
 
-    // Auto-generate memberNumber before saving
-    @PrePersist
-    public void generateMemberNumber() {
-        if (this.memberNumber == null || this.memberNumber.isBlank()) {
-            this.memberNumber = "MBR-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-        }
-    }
-
-    // force user to change password after their account was created
     @Column(nullable = false)
-    private boolean forcePasswordChange = false;
+    private boolean forcePasswordChange = true; // Force password change on first login
+
+    @Column(name = "account_activated")
+    private boolean accountActivated = false;
+
+    @Column(name = "first_login_date")
+    private LocalDateTime firstLoginDate;
 
     @CreationTimestamp
     @Column(name = "date_joined")
@@ -77,6 +72,9 @@ public class Member {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(name = "is_deleted")
+    private boolean deleted = false; // Soft delete flag
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore

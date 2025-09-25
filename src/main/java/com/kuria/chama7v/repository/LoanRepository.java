@@ -18,24 +18,26 @@ import java.util.Optional;
 
 @Repository
 public interface LoanRepository extends JpaRepository<Loan, Long>, JpaSpecificationExecutor<Loan> {
+
     Optional<Loan> findByLoanNumber(String loanNumber);
 
-    @Query("SELECT SUM(l.balance) FROM Loan l WHERE l.status IN ('APPROVED', 'DISBURSED')")
-    BigDecimal getTotalOutstandingLoans();
+    Page<Loan> findByMemberOrderByApplicationDateDesc(Member member, Pageable pageable);
 
-    @Query("SELECT SUM(l.totalAmount) FROM Loan l WHERE l.status = 'DISBURSED'")
-    BigDecimal getTotalDisbursedLoans();
+    Page<Loan> findByStatusOrderByApplicationDateDesc(LoanStatus status, Pageable pageable);
+
+    List<Loan> findByMemberAndStatusIn(Member member, List<LoanStatus> statuses);
+
+    @Query("SELECT COALESCE(SUM(l.balance), 0) FROM Loan l WHERE l.status IN ('APPROVED', 'DISBURSED')")
+    BigDecimal getTotalOutstandingLoans();
 
     @Query("SELECT COUNT(l) FROM Loan l WHERE l.status = 'PENDING'")
     Long getPendingLoanCount();
 
-    Page<Loan> findByMemberOrderByApplicationDateDesc(Member member, Pageable pageable);
+    @Query("SELECT COALESCE(SUM(l.amount), 0) FROM Loan l WHERE l.status IN ('APPROVED', 'DISBURSED', 'PAID')")
+    BigDecimal getTotalDisbursedLoans();
 
-    @Query("SELECT l FROM Loan l WHERE l.applicationDate BETWEEN :start AND :end")
-    Page<Loan> findByDateRange(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end, Pageable pageable);
-
-    List<Loan> findByMemberAndStatusIn(Member member, List<LoanStatus> statuses);
-
-    Page<Loan> findByStatusOrderByApplicationDateDesc(LoanStatus status, Pageable pageable);
-
+    @Query("SELECT l FROM Loan l WHERE l.applicationDate BETWEEN :startDate AND :endDate ORDER BY l.applicationDate DESC")
+    Page<Loan> findByDateRange(@Param("startDate") LocalDateTime startDate,
+                               @Param("endDate") LocalDateTime endDate,
+                               Pageable pageable);
 }

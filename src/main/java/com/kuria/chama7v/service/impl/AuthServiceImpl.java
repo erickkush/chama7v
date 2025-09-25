@@ -6,14 +6,18 @@ import com.kuria.chama7v.dto.response.JwtResponse;
 import com.kuria.chama7v.entity.Member;
 import com.kuria.chama7v.entity.PasswordResetToken;
 import com.kuria.chama7v.exception.ResourceNotFoundException;
+import com.kuria.chama7v.exception.UnauthorizedException;
 import com.kuria.chama7v.repository.MemberRepository;
 import com.kuria.chama7v.repository.PasswordResetTokenRepository;
 import com.kuria.chama7v.service.AuthService;
 import com.kuria.chama7v.service.EmailService;
+import com.kuria.chama7v.service.MemberService;
 import com.kuria.chama7v.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,10 +25,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -37,80 +42,85 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final EmailService emailService;
+    private final MemberService memberService;
 
-    @Override
-    public JwtResponse login(LoginRequest loginRequest) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        loginRequest.getEmail(),
-                        loginRequest.getPassword()
-                )
-        );
+    @Value("${app.password-reset.token-validity-hours:24}")
+    private int tokenValidityHours;
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        Member member = memberRepository.findByEmail(loginRequest.getEmail())
-                .orElseThrow(() -> new ResourceNotFoundException("Member not found"));
-
-        Map<String, Object> extraClaims = new HashMap<>();
-        extraClaims.put("memberId", member.getId());
-        extraClaims.put("memberNumber", member.getMemberNumber());
-        extraClaims.put("role", member.getRole().name());
-
-        String jwt = jwtUtil.generateToken(loginRequest.getEmail(), extraClaims);
-
-        log.info("Member {} logged in successfully", member.getEmail());
-
-        return new JwtResponse(
-                jwt,
-                member.getId(),
-                member.getMemberNumber(),
-                member.getName(),
-                member.getEmail(),
-                member.getRole(),
-                member.getStatus()
-        );
-    }
+    @Value("${app.frontend.reset-password-url:http://localhost:4200/reset-password}")
+    private String resetPasswordUrl;
 
     @Override
     @Transactional
-    public void changePassword(String currentPassword, String newPassword) {
-        Member member = getCurrentlyAuthenticatedMember();
-        if (!passwordEncoder.matches(currentPassword, member.getPassword())) {
-            throw new IllegalArgumentException("Current password incorrect");
-        }
-        member.setPassword(passwordEncoder.encode(newPassword));
-        member.setForcePasswordChange(false);
-        memberRepository.save(member);
-    }
+    public JwtResponse login(LoginRequest loginRequest) {
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            loginRequest.getEmail(),
+                            loginRequest.getPassword()
+                    )
+            );
+            SecurityContextHolder.getContext().setAuthentication(authentication);
 
-    private Member getCurrentlyAuthenticatedMember() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new IllegalStateException("No authenticated user found");
-        }
+            Member member = memberRepository.findByEmailAndDeletedFalse(loginRequest.getEmail())
+                    .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
 
-        String email = authentication.getName();
-        return memberRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Member", "email", email));
+            // Activate account on first successful login
+            if (!member.isAccountActivated()) {
+                memberService.activateAccount(member.getEmail());
+                member = memberRepository.findByEmailAndDeletedFalse(loginRequest.getEmail()).get();
+            }
+
+            Map<String, Object> claims = new HashMap<>();
+            claims.put("role", member.getRole().name());
+            claims.put("status", member.getStatus().name());
+            claims.put("memberId", member.getId());
+            claims.put("memberNumber", member.getMemberNumber());
+
+            String token = jwtUtil.generateToken(member.getEmail(), claims);
+
+            log.info("Successful login for member: {}", member.getEmail());
+
+            return new JwtResponse(
+                    token,
+                    member.getId(),
+                    member.getMemberNumber(),
+                    member.getName(),
+                    member.getEmail(),
+                    member.getRole(),
+                    member.getStatus(),
+                    member.isForcePasswordChange()
+            );
+
+        } catch (Exception e) {
+            log.error("Login failed for email {}: {}", loginRequest.getEmail(), e.getMessage(), e);
+            throw new BadCredentialsException("Invalid email or password");
+        }
     }
 
     @Override
     @Transactional
     public void initiatePasswordReset(PasswordResetRequest request) {
-        Member member = memberRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new ResourceNotFoundException("Member not found with email: " + request.getEmail()));
+        Member member = memberRepository.findByEmailAndDeletedFalse(request.getEmail())
+                .orElseThrow(() -> new ResourceNotFoundException("Member", "email", request.getEmail()));
 
-        tokenRepository.findByMemberAndUsedFalse(member).ifPresent(tokenRepository::delete);
+        // Invalidate existing tokens for this member
+        tokenRepository.invalidateTokensForMember(member);
 
-        String token = UUID.randomUUID().toString();
-        PasswordResetToken resetToken = new PasswordResetToken();
-        resetToken.setToken(token);
-        resetToken.setMember(member);
-        resetToken.setExpiryDate(LocalDateTime.now().plusHours(24));
-        tokenRepository.save(resetToken);
+        // Generate secure token
+        String resetToken = generateSecureToken();
 
-        emailService.sendPasswordResetEmail(member.getEmail(), token);
+        PasswordResetToken passwordResetToken = new PasswordResetToken();
+        passwordResetToken.setToken(resetToken);
+        passwordResetToken.setMember(member);
+        passwordResetToken.setExpiryDate(LocalDateTime.now().plusHours(tokenValidityHours));
+        passwordResetToken.setUsed(false);
+
+        tokenRepository.save(passwordResetToken);
+
+        // Send reset email with link
+        String resetLink = resetPasswordUrl + "?token=" + resetToken;
+        emailService.sendPasswordResetEmail(member.getEmail(), member.getName(), resetLink);
 
         log.info("Password reset initiated for member: {}", member.getEmail());
     }
@@ -118,23 +128,77 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public void resetPassword(String token, String newPassword) {
-        PasswordResetToken resetToken = tokenRepository
-                .findByTokenAndUsedFalseAndExpiryDateAfter(token, LocalDateTime.now())
+        PasswordResetToken resetToken = tokenRepository.findByTokenAndUsedFalse(token)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid or expired reset token"));
 
+        if (resetToken.isExpired()) {
+            throw new IllegalArgumentException("Reset token has expired");
+        }
+
         Member member = resetToken.getMember();
+
+        // Update password
         member.setPassword(passwordEncoder.encode(newPassword));
+        member.setForcePasswordChange(false); // Remove force password change after successful reset
         memberRepository.save(member);
 
-        resetToken.setUsed(true);
+        // Mark token as used
+        resetToken.markAsUsed();
         tokenRepository.save(resetToken);
 
-        log.info("Password reset completed for member: {}", member.getEmail());
+        log.info("Password successfully reset for member: {}", member.getEmail());
     }
 
     @Override
+    @Transactional
+    public void changePassword(String currentPassword, String newPassword) {
+        Member currentMember = memberService.getCurrentMember();
+
+        if (!passwordEncoder.matches(currentPassword, currentMember.getPassword())) {
+            throw new UnauthorizedException("Current password is incorrect");
+        }
+
+        currentMember.setPassword(passwordEncoder.encode(newPassword));
+        currentMember.setForcePasswordChange(false);
+        memberRepository.save(currentMember);
+
+        log.info("Password changed successfully for member: {}", currentMember.getEmail());
+    }
+
+    @Override
+    @Transactional
     public void logout(String token) {
-        // Stateless JWT: logout is handled client-side
-        log.info("User logged out");
+        try {
+            if (jwtUtil.validateToken(token)) {
+                jwtUtil.blacklistToken(token);
+            }
+            SecurityContextHolder.clearContext();
+            log.info("User logged out successfully");
+        } catch (Exception e) {
+            log.error("Logout error: {}", e.getMessage());
+            SecurityContextHolder.clearContext();
+        }
+    }
+
+    private String generateSecureToken() {
+        SecureRandom random = new SecureRandom();
+        byte[] tokenBytes = new byte[32];
+        random.nextBytes(tokenBytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(tokenBytes);
+    }
+    @Override
+    public boolean validateToken(String token) {
+        try {
+            return jwtUtil.validateToken(token) && !jwtUtil.isTokenBlacklisted(token);
+        } catch (Exception e) {
+            log.error("Token validation failed: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    @Transactional
+    public void cleanupExpiredTokens() {
+        tokenRepository.deleteExpiredTokens(LocalDateTime.now());
+        log.debug("Cleaned up expired password reset tokens");
     }
 }

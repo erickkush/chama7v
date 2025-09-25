@@ -18,7 +18,8 @@ public class JwtResponse {
     private MemberStatus status;
     private boolean forcePasswordChange;
 
-    public JwtResponse(String token, Long id, String memberNumber, String name, String email, MemberRole role, MemberStatus status) {
+    public JwtResponse(String token, Long id, String memberNumber, String name, String email,
+                       MemberRole role, MemberStatus status, boolean forcePasswordChange) {
         this.token = token;
         this.id = id;
         this.memberNumber = memberNumber;
@@ -26,5 +27,7 @@ public class JwtResponse {
         this.email = email;
         this.role = role;
         this.status = status;
+        this.forcePasswordChange = forcePasswordChange;
     }
+
 }

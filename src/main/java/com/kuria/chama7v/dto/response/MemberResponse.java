@@ -20,4 +20,7 @@ public class MemberResponse {
     private BigDecimal totalContributions;
     private BigDecimal outstandingLoan;
     private LocalDateTime dateJoined;
+    private boolean accountActivated;
+    private boolean forcePasswordChange;
+    private LocalDateTime firstLoginDate;
 }

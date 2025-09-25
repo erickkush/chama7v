@@ -16,7 +16,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/members")
+@RequestMapping("/api/members")
 @RequiredArgsConstructor
 public class MemberController {
 
@@ -26,9 +26,14 @@ public class MemberController {
     @PreAuthorize("hasRole('CHAIRPERSON') or hasRole('SECRETARY') or hasRole('TREASURER')")
     public ResponseEntity<ApiResponse<MemberResponse>> registerMember(
             @Valid @RequestBody MemberRegistrationRequest request) {
-        MemberResponse memberResponse = memberService.registerMember(request);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Member registered successfully", memberResponse));
+        try {
+            MemberResponse memberResponse = memberService.registerMember(request);
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(ApiResponse.success("Member registered successfully", memberResponse));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error(e.getMessage()));
+        }
     }
 
     @GetMapping
@@ -50,15 +55,24 @@ public class MemberController {
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('CHAIRPERSON') or hasRole('SECRETARY') or hasRole('TREASURER')")
     public ResponseEntity<ApiResponse<MemberResponse>> getMemberById(@PathVariable Long id) {
-        MemberResponse member = memberService.getMemberById(id);
-        return ResponseEntity.ok(ApiResponse.success("Member retrieved successfully", member));
+        try {
+            MemberResponse member = memberService.getMemberById(id);
+            return ResponseEntity.ok(ApiResponse.success("Member retrieved successfully", member));
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @GetMapping("/profile")
     public ResponseEntity<ApiResponse<MemberResponse>> getCurrentMemberProfile() {
-        var currentMember = memberService.getCurrentMember();
-        MemberResponse member = memberService.getMemberById(currentMember.getId());
-        return ResponseEntity.ok(ApiResponse.success("Profile retrieved successfully", member));
+        try {
+            var currentMember = memberService.getCurrentMember();
+            MemberResponse member = memberService.getMemberById(currentMember.getId());
+            return ResponseEntity.ok(ApiResponse.success("Profile retrieved successfully", member));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("Unable to retrieve profile"));
+        }
     }
 
     @PutMapping("/{id}")
@@ -66,22 +80,51 @@ public class MemberController {
     public ResponseEntity<ApiResponse<MemberResponse>> updateMember(
             @PathVariable Long id,
             @Valid @RequestBody MemberRegistrationRequest request) {
-        MemberResponse updatedMember = memberService.updateMember(id, request);
-        return ResponseEntity.ok(ApiResponse.success("Member updated successfully", updatedMember));
+        try {
+            MemberResponse updatedMember = memberService.updateMember(id, request);
+            return ResponseEntity.ok(ApiResponse.success("Member updated successfully", updatedMember));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @PutMapping("/{id}/suspend")
     @PreAuthorize("hasRole('CHAIRPERSON') or hasRole('SECRETARY') or hasRole('TREASURER')")
     public ResponseEntity<ApiResponse<Void>> suspendMember(@PathVariable Long id) {
-        memberService.suspendMember(id);
-        return ResponseEntity.ok(ApiResponse.success("Member suspended successfully"));
+        try {
+            memberService.suspendMember(id);
+            return ResponseEntity.ok(ApiResponse.success("Member suspended successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("Failed to suspend member"));
+        }
     }
 
     @PutMapping("/{id}/activate")
     @PreAuthorize("hasRole('CHAIRPERSON') or hasRole('SECRETARY') or hasRole('TREASURER')")
     public ResponseEntity<ApiResponse<Void>> activateMember(@PathVariable Long id) {
-        memberService.activateMember(id);
-        return ResponseEntity.ok(ApiResponse.success("Member activated successfully"));
+        try {
+            memberService.activateMember(id);
+            return ResponseEntity.ok(ApiResponse.success("Member activated successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("Failed to activate member"));
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('CHAIRPERSON')")
+    public ResponseEntity<ApiResponse<Void>> deleteMember(@PathVariable Long id) {
+        try {
+            memberService.deleteMember(id);
+            return ResponseEntity.ok(ApiResponse.success("Member deleted successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("Failed to delete member"));
+        }
     }
 
     @GetMapping("/search")

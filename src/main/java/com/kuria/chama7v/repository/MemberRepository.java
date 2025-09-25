@@ -17,27 +17,37 @@ import java.util.Optional;
 @Repository
 public interface MemberRepository extends JpaRepository<Member, Long> {
 
-    Optional<Member> findByEmail(String email);
+    Optional<Member> findByEmailAndDeletedFalse(String email);
 
-    Optional<Member> findByMemberNumber(String memberNumber);
+    Optional<Member> findByMemberNumberAndDeletedFalse(String memberNumber);
 
-    boolean existsByEmail(String email);
+    Optional<Member> findByIdAndDeletedFalse(Long id);
+
+    boolean existsByEmailAndDeletedFalse(String email);
 
     boolean existsByRole(MemberRole role);
-    boolean existsByMemberNumber(String memberNumber);
 
-    boolean existsByNationalId(String nationalId);
+    boolean existsByRoleAndDeletedFalse(MemberRole role);
 
-    List<Member> findByRole(MemberRole role);
+    boolean existsByMemberNumberAndDeletedFalse(String memberNumber);
 
-    Page<Member> findByStatus(MemberStatus status, Pageable pageable);
+    boolean existsByNationalIdAndDeletedFalse(String nationalId);
 
-    @Query("SELECT SUM(m.totalContributions) FROM Member m WHERE m.status = 'ACTIVE'")
+    List<Member> findByRoleAndDeletedFalse(MemberRole role);
+
+    Page<Member> findByStatusAndDeletedFalse(MemberStatus status, Pageable pageable);
+
+    Page<Member> findByDeletedFalse(Pageable pageable);
+
+    @Query("SELECT COALESCE(SUM(m.totalContributions), 0) FROM Member m WHERE m.status = 'active' AND m.deleted = false")
     BigDecimal getTotalGroupContributions();
 
-    @Query("SELECT COUNT(m) FROM Member m WHERE m.status = 'ACTIVE'")
+    @Query("SELECT COUNT(m) FROM Member m WHERE m.status = 'active' AND m.deleted = false")
     Long getActiveMemberCount();
 
-    @Query("SELECT m FROM Member m WHERE m.name LIKE %:searchTerm% OR m.email LIKE %:searchTerm% OR m.memberNumber LIKE %:searchTerm%")
+    @Query("SELECT m FROM Member m WHERE m.deleted = false AND (m.name LIKE %:searchTerm% OR m.email LIKE %:searchTerm% OR m.memberNumber LIKE %:searchTerm%)")
     Page<Member> searchMembers(@Param("searchTerm") String searchTerm, Pageable pageable);
+
+    @Query("SELECT COALESCE(MAX(CAST(SUBSTRING(m.memberNumber, 2) AS int)), 0) FROM Member m WHERE m.memberNumber LIKE 'C%' AND m.deleted = false")
+    Integer findMaxMemberNumber();
 }

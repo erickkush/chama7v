@@ -1,52 +1,98 @@
 server:
   port: 8080
-  servlet:
-    context-path: /api/
+  #servlet:
+    #context-path: /api
+  error:
+    include-message: always
+    include-binding-errors: always
 
 spring:
   application:
     name: chama7v
 
   datasource:
-    url: jdbc:mysql://localhost:3306/chama7v_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-    username: root
-    password: admin
+    url: jdbc:mysql://localhost:3306/chama7v_db?useSSL=true&requireSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:admin}
     driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 20000
+      idle-timeout: 600000
+      max-lifetime: 1800000
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     show-sql: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
         format_sql: true
+        use_sql_comments: false
+
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
 
   mail:
-    host: smtp.gmail.com
-    port: 587
-    username: ${EMAIL_USERNAME:kuriaerick8@gmail.com}
-    password: ${EMAIL_PASSWORD:wrqrhtnjzsjszebi}
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:kuriaerick8@gmail.com}
+    password: ${MAIL_PASSWORD:wrqrhtnjzsjszebi}
     properties:
       mail:
         smtp:
           auth: true
           starttls:
             enable: true
+            required: true
+          ssl:
+            trust: smtp.gmail.com
 
+  cache:
+    type: simple
+
+  security:
+    require-ssl: true
+
+# JWT Configuration
 jwt:
-  secret: ${JWT_SECRET:mySuperSuperLongJwtSecretKeyForHS512AlgorithmThatHasMoreThanSixtyFourCharacters1234567890}
-  expiration: 86400000 # 24 hours
+  secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+  expiration: ${JWT_EXPIRATION:86400000} # 24 hours
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000} # 7 days
 
+# Password Reset Configuration
+app:
+  password-reset:
+    token-expiry-minutes: 30
+    max-attempts-per-hour: 5
+  base-url: ${APP_BASE_URL:https://localhost:4200}
+  name: chama7v
+
+# M-Pesa Configuration
 mpesa:
   consumer-key: ${MPESA_CONSUMER_KEY:2bvPLI5K3BABqgsxlPLCMNLVONqJ1ZMzmpLmDntyaITRiu8d}
   consumer-secret: ${MPESA_CONSUMER_SECRET:eckzeceHXutQxGtkUVMdvFbQ0S0aDsBZfiP3mDYwyuf0Aix6AxEEYMh8Jmun1JXG}
   shortcode: ${MPESA_SHORTCODE:174379}
-  passkey: ${MPESA_PASSKEY:passkey}
-  callback-url: ${MPESA_CALLBACK_URL:https://domain.com/api/v1/mpesa/callback}
-  base-url: https://sandbox.safaricom.co.ke
+  passkey: ${MPESA_PASSKEY:your-passkey}
+  callback-url: ${MPESA_CALLBACK_URL:https://chama7v.com/api/mpesa/callback}
+  base-url: ${MPESA_BASE_URL:https://sandbox.safaricom.co.ke}
 
+# Rate Limiting
+rate-limit:
+  enabled: true
+  requests-per-minute: 60
+  requests-per-hour: 1000
+
+# Logging
 logging:
   level:
-    com.chama7v: DEBUG
-    org.springframework.security: DEBUG
+    com.kuria.chama7v: INFO
+    org.springframework.security: WARN
+    org.springframework.web: WARN
+  file:
+    name: logs/chama7v.log
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

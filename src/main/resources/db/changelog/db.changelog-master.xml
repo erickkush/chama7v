@@ -1,0 +1,16 @@
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.17.xsd">
+
+    <include file="db/changelog/2025-09-23-initial-schema.xml"/>
+    <include file="db/changelog/2025-09-23-update-members-table.xml"/>
+
+    <include file="db/changelog/2025-09-23-create-contributions.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/2025-09-23-create-loans.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/2025-09-23-create-loan-payments.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/2025-09-23-create-mpesa-transactions.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/2025-09-23-create-password-reset-tokens.xml" relativeToChangelogFile="false"/>
+</databaseChangeLog>

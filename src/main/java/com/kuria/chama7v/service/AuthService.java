@@ -10,4 +10,5 @@ public interface AuthService {
     void resetPassword(String token, String newPassword);
     void changePassword(String currentPassword, String newPassword);
     void logout(String token);
+    boolean validateToken(String token);
 }
