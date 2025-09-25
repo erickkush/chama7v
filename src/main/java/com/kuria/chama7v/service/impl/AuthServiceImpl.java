@@ -53,6 +53,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public JwtResponse login(LoginRequest loginRequest) {
+        logAuthenticationAttempt(loginRequest);
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -200,5 +201,19 @@ public class AuthServiceImpl implements AuthService {
     public void cleanupExpiredTokens() {
         tokenRepository.deleteExpiredTokens(LocalDateTime.now());
         log.debug("Cleaned up expired password reset tokens");
+    }
+
+    private void logAuthenticationAttempt(LoginRequest loginRequest) {
+        try {
+            Member member = memberRepository.findByEmailAndDeletedFalse(loginRequest.getEmail()).orElse(null);
+            if (member != null) {
+                log.info("Authentication attempt for member: {} with status: {}, activated: {}",
+                        member.getEmail(), member.getStatus(), member.isAccountActivated());
+            } else {
+                log.warn("Authentication attempt for non-existent email: {}", loginRequest.getEmail());
+            }
+        } catch (Exception e) {
+            log.error("Error during authentication logging", e);
+        }
     }
 }

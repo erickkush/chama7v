@@ -37,7 +37,7 @@ public class DataSeeder implements CommandLineRunner {
             admin.setTotalContributions(BigDecimal.ZERO);
             admin.setOutstandingLoan(BigDecimal.ZERO);
 
-            admin.setStatus(MemberStatus.active);
+            admin.setStatus(MemberStatus.ACTIVE);
             admin.setAccountActivated(true);
             admin.setForcePasswordChange(false);
 

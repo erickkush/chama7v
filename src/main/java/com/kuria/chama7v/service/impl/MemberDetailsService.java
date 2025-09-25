@@ -36,14 +36,16 @@ public class MemberDetailsService implements UserDetailsService {
             throw new UsernameNotFoundException("Member account has been deleted");
         }
 
+        log.debug("Authenticating member: {} with status: {}", email, member.getStatus());
+
         return User.builder()
                 .username(member.getEmail())
                 .password(member.getPassword())
                 .authorities(getAuthorities(member))
                 .accountExpired(false)
-                .accountLocked(member.getStatus() == MemberStatus.pending)
+                .accountLocked(member.getStatus() == MemberStatus.SUSPENDED)
                 .credentialsExpired(false)
-                .disabled(member.getStatus() == MemberStatus.inactive)
+                .disabled(member.getStatus() == MemberStatus.INACTIVE)
                 .build();
     }
 

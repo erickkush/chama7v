@@ -170,7 +170,7 @@ public class MpesaServiceImpl implements MpesaService {
     private void processPayment(MpesaTransaction transaction) {
         // This method would integrate with ContributionService or LoanService
         // to create the actual contribution or loan payment record
-        // Implementation depends on your business logic
+        // Implementation depends on business logic
         log.info("Processing payment for transaction type: {}", transaction.getTransactionType());
     }
 

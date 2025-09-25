@@ -10,6 +10,7 @@ public interface MemberService {
     MemberResponse registerMember(MemberRegistrationRequest request);
     Page<MemberResponse> getAllMembers(Pageable pageable);
     MemberResponse getMemberById(Long id);
+    MemberResponse getMemberByEmail(String email);
     MemberResponse updateMember(Long id, MemberRegistrationRequest request);
     void suspendMember(Long id);
     void activateMember(Long id);

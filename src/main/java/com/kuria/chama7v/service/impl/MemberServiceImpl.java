@@ -56,7 +56,7 @@ public class MemberServiceImpl implements MemberService {
         member.setEmail(request.getEmail());
         member.setPhone(formattedPhone);
         member.setPassword(passwordEncoder.encode(tempPassword));
-        member.setStatus(MemberStatus.pending); // Start with PENDING status
+        member.setStatus(MemberStatus.PENDING);
         member.setRole(request.getRole() != null ? request.getRole() : MemberRole.MEMBER);
         member.setTotalContributions(BigDecimal.ZERO);
         member.setOutstandingLoan(BigDecimal.ZERO);
@@ -69,7 +69,8 @@ public class MemberServiceImpl implements MemberService {
         emailService.sendCredentialsEmail(saved.getEmail(), saved.getName(),
                 saved.getEmail(), tempPassword);
 
-        log.info("Member {} registered with pending status", saved.getEmail());
+        log.info("Member {} registered with PENDING status and temporary password: {}",
+                saved.getEmail(), tempPassword);
         return mapToMemberResponse(saved);
     }
 
@@ -83,7 +84,6 @@ public class MemberServiceImpl implements MemberService {
 
         return String.format("C%03d", nextNumber);
     }
-
 
     private String generateSecureTemporaryPassword(int length) {
         final String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%&*()-_=+";
@@ -103,10 +103,10 @@ public class MemberServiceImpl implements MemberService {
 
         if (!member.isAccountActivated()) {
             member.setAccountActivated(true);
-            member.setStatus(MemberStatus.active);
+            member.setStatus(MemberStatus.ACTIVE);
             member.setFirstLoginDate(LocalDateTime.now());
             memberRepository.save(member);
-            log.info("Account activated for member: {}", email);
+            log.info("Account activated for member: {} - Status changed to ACTIVE", email);
         }
     }
 
@@ -149,7 +149,7 @@ public class MemberServiceImpl implements MemberService {
         Member member = memberRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Member", "id", id));
 
-        member.setStatus(MemberStatus.suspended);
+        member.setStatus(MemberStatus.SUSPENDED);
         memberRepository.save(member);
         log.info("Member suspended: {}", member.getEmail());
     }
@@ -160,7 +160,7 @@ public class MemberServiceImpl implements MemberService {
         Member member = memberRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Member", "id", id));
 
-        member.setStatus(MemberStatus.active);
+        member.setStatus(MemberStatus.ACTIVE);
         memberRepository.save(member);
         log.info("Member activated: {}", member.getEmail());
     }
@@ -173,7 +173,7 @@ public class MemberServiceImpl implements MemberService {
 
         // Soft delete
         member.setDeleted(true);
-        member.setStatus(MemberStatus.inactive);
+        member.setStatus(MemberStatus.INACTIVE);
         memberRepository.save(member);
         log.info("Member soft deleted: {}", member.getEmail());
     }
@@ -204,6 +204,13 @@ public class MemberServiceImpl implements MemberService {
                 .map(this::mapToMemberResponse);
     }
 
+    @Override
+    public MemberResponse getMemberByEmail(String email) {
+        Member member = memberRepository.findByEmailAndDeletedFalse(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Member", "email", email));
+        return mapToMemberResponse(member);
+    }
+
     private MemberResponse mapToMemberResponse(Member member) {
         MemberResponse response = new MemberResponse();
         response.setId(member.getId());
@@ -218,6 +225,7 @@ public class MemberServiceImpl implements MemberService {
         response.setOutstandingLoan(member.getOutstandingLoan());
         response.setDateJoined(member.getDateJoined());
         response.setAccountActivated(member.isAccountActivated());
+        response.setForcePasswordChange(member.isForcePasswordChange());
         return response;
     }
 }

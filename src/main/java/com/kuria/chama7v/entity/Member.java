@@ -48,7 +48,7 @@ public class Member {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private MemberStatus status = MemberStatus.pending;
+    private MemberStatus status = MemberStatus.PENDING;
 
     @Column(name = "total_contributions", precision = 19, scale = 2)
     private BigDecimal totalContributions = BigDecimal.ZERO;
