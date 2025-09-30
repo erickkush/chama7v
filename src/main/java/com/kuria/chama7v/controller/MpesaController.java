@@ -13,7 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/mpesa")
+@RequestMapping("/api/mpesa")
 @RequiredArgsConstructor
 @Slf4j
 public class MpesaController {

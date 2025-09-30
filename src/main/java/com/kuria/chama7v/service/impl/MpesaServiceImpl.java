@@ -74,7 +74,7 @@ public class MpesaServiceImpl implements MpesaService {
 
             WebClient webClient = webClientBuilder.build();
             Map<String, Object> response = webClient.post()
-                    .uri(baseUrl + "/mpesa/stkpush/processrequest")
+                    .uri(baseUrl + "/mpesa/stkpush/v1/processrequest")
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(stkRequest)
@@ -182,7 +182,7 @@ public class MpesaServiceImpl implements MpesaService {
 
             WebClient webClient = webClientBuilder.build();
             Map<String, Object> response = webClient.get()
-                    .uri(baseUrl + "/oauth/generate?grant_type=client_credentials")
+                    .uri(baseUrl + "/oauth/v1/generate?grant_type=client_credentials")
                     .header(HttpHeaders.AUTHORIZATION, "Basic " + encodedCredentials)
                     .retrieve()
                     .bodyToMono(Map.class)

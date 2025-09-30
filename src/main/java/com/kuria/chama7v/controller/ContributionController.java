@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 
 @RestController
-@RequestMapping("/contributions")
+@RequestMapping("/api/contributions")
 @RequiredArgsConstructor
 public class ContributionController {
 

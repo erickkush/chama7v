@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 
 @RestController
-@RequestMapping("/loans")
+@RequestMapping("/api/loans")
 @RequiredArgsConstructor
 public class LoanController {
 
