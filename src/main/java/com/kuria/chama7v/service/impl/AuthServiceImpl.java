@@ -1,7 +1,8 @@
 package com.kuria.chama7v.service.impl;
 
+import com.kuria.chama7v.dto.request.ForgotPasswordRequest;
 import com.kuria.chama7v.dto.request.LoginRequest;
-import com.kuria.chama7v.dto.request.PasswordResetRequest;
+import com.kuria.chama7v.dto.request.ResetPasswordRequest;
 import com.kuria.chama7v.dto.response.JwtResponse;
 import com.kuria.chama7v.entity.Member;
 import com.kuria.chama7v.entity.PasswordResetToken;
@@ -101,7 +102,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public void initiatePasswordReset(PasswordResetRequest request) {
+    public void initiatePasswordReset(ForgotPasswordRequest request) {
         Member member = memberRepository.findByEmailAndDeletedFalse(request.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("Member", "email", request.getEmail()));
 
@@ -125,6 +126,7 @@ public class AuthServiceImpl implements AuthService {
 
         log.info("Password reset initiated for member: {}", member.getEmail());
     }
+
 
     @Override
     @Transactional

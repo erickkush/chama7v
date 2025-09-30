@@ -767,3 +767,37 @@ org.springframework.web.HttpRequestMethodNotSupportedException: Request method '
 2025-09-30 10:01:29 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
 2025-09-30 10:01:29 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
 2025-09-30 10:01:29 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2025-09-30 11:25:33 [main] INFO  c.kuria.chama7v.Chama7vApplication - Starting Chama7vApplication using Java 21.0.8 with PID 4800 (C:\Users\ErickKuria\3D Objects\project\New folder\chama7v\target\classes started by ErickKuria in C:\Users\ErickKuria\3D Objects\project\New folder\chama7v)
+2025-09-30 11:25:33 [main] INFO  c.kuria.chama7v.Chama7vApplication - No active profile set, falling back to 1 default profile: "default"
+2025-09-30 11:25:36 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-09-30 11:25:37 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 564 ms. Found 6 JPA repository interfaces.
+2025-09-30 11:25:39 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8080 (http)
+2025-09-30 11:25:39 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-09-30 11:25:39 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.20]
+2025-09-30 11:25:39 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-09-30 11:25:39 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 6282 ms
+2025-09-30 11:25:40 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-09-30 11:25:40 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.4.4.Final
+2025-09-30 11:25:40 [main] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
+2025-09-30 11:25:41 [main] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-09-30 11:25:41 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-09-30 11:25:48 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@3c743d40
+2025-09-30 11:25:48 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-09-30 11:25:49 [main] WARN  org.hibernate.orm.deprecation - HHH90000025: MySQL8Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-09-30 11:25:49 [main] WARN  org.hibernate.orm.deprecation - HHH90000026: MySQL8Dialect has been deprecated; use org.hibernate.dialect.MySQLDialect instead
+2025-09-30 11:25:58 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-09-30 11:25:58 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-09-30 11:25:59 [main] INFO  o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-09-30 11:26:06 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-09-30 11:26:08 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 8080 (http) with context path ''
+2025-09-30 11:26:08 [main] INFO  c.kuria.chama7v.Chama7vApplication - Started Chama7vApplication in 36.963 seconds (process running for 38.165)
+2025-09-30 11:27:01 [http-nio-8080-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-09-30 11:27:02 [http-nio-8080-exec-1] INFO  c.k.c.service.impl.AuthServiceImpl - Authentication attempt for member: kuriaerick08@gmail.com with status: ACTIVE, activated: true
+2025-09-30 11:27:03 [http-nio-8080-exec-1] INFO  c.k.c.service.impl.AuthServiceImpl - Successful login for member: kuriaerick08@gmail.com
+2025-09-30 11:27:46 [http-nio-8080-exec-3] INFO  c.k.c.service.impl.AuthServiceImpl - Password reset initiated for member: kuriaerick08@gmail.com
+2025-09-30 11:27:50 [ChamaAsync-1] INFO  c.k.c.service.impl.EmailServiceImpl - Password reset email sent to: kuriaerick08@gmail.com
+2025-09-30 11:29:52 [http-nio-8080-exec-6] ERROR c.k.c.e.GlobalExceptionHandler - Validation errors: {email=Email is required}
+2025-09-30 11:30:21 [http-nio-8080-exec-8] INFO  c.k.c.service.impl.AuthServiceImpl - Password successfully reset for member: kuriaerick08@gmail.com
+2025-09-30 11:30:49 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-09-30 11:30:49 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2025-09-30 11:30:49 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.

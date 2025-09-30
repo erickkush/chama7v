@@ -1,7 +1,8 @@
 package com.kuria.chama7v.controller;
 
+import com.kuria.chama7v.dto.request.ForgotPasswordRequest;
 import com.kuria.chama7v.dto.request.LoginRequest;
-import com.kuria.chama7v.dto.request.PasswordResetRequest;
+import com.kuria.chama7v.dto.request.ResetPasswordRequest;
 import com.kuria.chama7v.dto.response.ApiResponse;
 import com.kuria.chama7v.dto.response.JwtResponse;
 import com.kuria.chama7v.service.AuthService;
@@ -33,25 +34,23 @@ public class AuthController {
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<ApiResponse<Void>> forgotPassword(@Valid @RequestBody PasswordResetRequest request) {
+    public ResponseEntity<ApiResponse<Void>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
         try {
             authService.initiatePasswordReset(request);
             return ResponseEntity.ok(ApiResponse.success(
                     "If an account with this email exists, a password reset link has been sent."));
         } catch (Exception e) {
             log.error("Password reset initiation failed", e);
-            // Don't reveal whether email exists for security
+            // Don’t reveal whether the email exists
             return ResponseEntity.ok(ApiResponse.success(
                     "If an account with this email exists, a password reset link has been sent."));
         }
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<ApiResponse<Void>> resetPassword(
-            @RequestParam @NotBlank String token,
-            @RequestParam @NotBlank String newPassword) {
+    public ResponseEntity<ApiResponse<Void>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         try {
-            authService.resetPassword(token, newPassword);
+            authService.resetPassword(request.getToken(), request.getNewPassword());
             return ResponseEntity.ok(ApiResponse.success("Password reset successful"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
