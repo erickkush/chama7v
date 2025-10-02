@@ -2,7 +2,7 @@ package com.kuria.chama7v.controller;
 
 import com.kuria.chama7v.dto.request.ForgotPasswordRequest;
 import com.kuria.chama7v.dto.request.LoginRequest;
-import com.kuria.chama7v.dto.request.ResetPasswordRequest;
+import com.kuria.chama7v.dto.request.PasswordResetRequest;
 import com.kuria.chama7v.dto.response.ApiResponse;
 import com.kuria.chama7v.dto.response.JwtResponse;
 import com.kuria.chama7v.service.AuthService;
@@ -48,7 +48,7 @@ public class AuthController {
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<ApiResponse<Void>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+    public ResponseEntity<ApiResponse<Void>> resetPassword(@Valid @RequestBody PasswordResetRequest request) {
         try {
             authService.resetPassword(request.getToken(), request.getNewPassword());
             return ResponseEntity.ok(ApiResponse.success("Password reset successful"));

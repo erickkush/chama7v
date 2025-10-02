@@ -2,7 +2,6 @@ package com.kuria.chama7v.service.impl;
 
 import com.kuria.chama7v.dto.request.ForgotPasswordRequest;
 import com.kuria.chama7v.dto.request.LoginRequest;
-import com.kuria.chama7v.dto.request.ResetPasswordRequest;
 import com.kuria.chama7v.dto.response.JwtResponse;
 import com.kuria.chama7v.entity.Member;
 import com.kuria.chama7v.entity.PasswordResetToken;
