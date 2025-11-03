@@ -1,7 +1,5 @@
 server:
   port: 8080
-  #servlet:
-    #context-path: /api
   error:
     include-message: always
     include-binding-errors: always
@@ -11,7 +9,7 @@ spring:
     name: chama7v
 
   datasource:
-    url: jdbc:mysql://localhost:3306/chama7v_db?useSSL=true&requireSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3306/chama7v_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Africa/Nairobi
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:admin}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -24,16 +22,19 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: update  # Changed from 'none' to 'update' for development
     show-sql: false
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQL8Dialect
+        dialect: org.hibernate.dialect.MySQLDialect
         format_sql: true
         use_sql_comments: false
+        jdbc:
+          time_zone: Africa/Nairobi
 
-  liquibase:
-    change-log: classpath:db/changelog/db.changelog-master.xml
+  # Comment out liquibase if not using it
+  # liquibase:
+  #   change-log: classpath:db/changelog/db.changelog-master.xml
 
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
@@ -49,12 +50,16 @@ spring:
             required: true
           ssl:
             trust: smtp.gmail.com
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
 
   cache:
     type: simple
 
+  # Disable SSL requirement for local development
   security:
-    require-ssl: true
+    require-ssl: false
 
 # JWT Configuration
 jwt:
@@ -65,19 +70,39 @@ jwt:
 # Password Reset Configuration
 app:
   password-reset:
+    token-validity-hours: 24
     token-expiry-minutes: 30
     max-attempts-per-hour: 5
-  base-url: ${APP_BASE_URL:https://localhost:4200}
-  name: chama7v
+  frontend:
+    reset-password-url: ${FRONTEND_RESET_URL:http://localhost:4200/reset-password}
+  base-url: ${APP_BASE_URL:http://localhost:4200}
+  name: Chama7v
 
-# M-Pesa Configuration
+# M-Pesa Configuration - FIXED
 mpesa:
-  consumer-key: ${MPESA_CONSUMER_KEY:2bvPLI5K3BABqgsxlPLCMNLVONqJ1ZMzmpLmDntyaITRiu8d}
-  consumer-secret: ${MPESA_CONSUMER_SECRET:eckzeceHXutQxGtkUVMdvFbQ0S0aDsBZfiP3mDYwyuf0Aix6AxEEYMh8Jmun1JXG}
-  shortcode: ${MPESA_SHORTCODE:174379}
-  passkey: ${MPESA_PASSKEY:your-passkey}
-  callback-url: ${MPESA_CALLBACK_URL:https://chama7v.com/api/mpesa/callback}
-  base-url: ${MPESA_BASE_URL:https://sandbox.safaricom.co.ke}
+  environment: sandbox  # Options: sandbox or production
+
+  # Sandbox Configuration
+  sandbox:
+    base-url: https://sandbox.safaricom.co.ke
+    consumer-key: ${MPESA_SANDBOX_CONSUMER_KEY:2bvPLI5K3BABqgsxlPLCMNLVONqJ1ZMzmpLmDntyaITRiu8d}
+    consumer-secret: ${MPESA_SANDBOX_CONSUMER_SECRET:eckzeceHXutQxGtkUVMdvFbQ0S0aDsBZfiP3mDYwyuf0Aix6AxEEYMh8Jmun1JXG}
+    shortcode: 174379
+    passkey: bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919
+
+  # Production Configuration (fill when ready for production)
+  production:
+    base-url: https://api.safaricom.co.ke
+    consumer-key: ${MPESA_PROD_CONSUMER_KEY:your-production-consumer-key}
+    consumer-secret: ${MPESA_PROD_CONSUMER_SECRET:your-production-consumer-secret}
+    shortcode: ${MPESA_PROD_SHORTCODE:your-production-shortcode}
+    passkey: ${MPESA_PROD_PASSKEY:your-production-passkey}
+
+  # Callback URLs
+  # IMPORTANT: For local testing, use ngrok (e.g., https://abc123.ngrok.io/api/mpesa/callback)
+  # For production, use your actual domain
+  callback-url: ${MPESA_CALLBACK_URL:https://tyra-inflationary-dagmar.ngrok-free.dev/api/mpesa/callback}
+  timeout-url: ${MPESA_TIMEOUT_URL:https://tyra-inflationary-dagmar.ngrok-free.dev/api/mpesa/timeout}
 
 # Rate Limiting
 rate-limit:
@@ -88,11 +113,23 @@ rate-limit:
 # Logging
 logging:
   level:
-    com.kuria.chama7v: INFO
+    root: INFO
+    com.kuria.chama7v: DEBUG  # Changed to DEBUG for better M-Pesa troubleshooting
     org.springframework.security: WARN
     org.springframework.web: WARN
+    org.springframework.web.reactive.function.client: DEBUG  # For M-Pesa API calls
   file:
     name: logs/chama7v.log
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# Management endpoints (optional - for monitoring)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when_authorized

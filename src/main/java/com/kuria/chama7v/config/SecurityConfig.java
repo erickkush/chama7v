@@ -54,32 +54,22 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // Enable CORS
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                // Disable CSRF for APIs
                 .csrf(csrf -> csrf.disable())
-                // Security headers
-                .headers(headers -> headers
-                        .httpStrictTransportSecurity(hsts -> hsts
-                                .includeSubDomains(true)
-                                .preload(true)
-                                .maxAgeInSeconds(31536000)
-                        )
-                )
-                // Authorization rules
-                .authorizeHttpRequests(auth -> auth
+                .authorizeHttpRequests(authz -> authz
                         .requestMatchers(
                                 "/api/auth/**",
                                 "/api/mpesa/callback/**",
+                                "/api/mpesa/timeout/**",
                                 "/actuator/health",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html"
                         ).permitAll()
-                        .requestMatchers("/api/members/register", "/api/members/*/delete")
-                        .hasRole("CHAIRPERSON")
+                        .requestMatchers("/api/members/register").hasAnyRole("CHAIRPERSON", "SECRETARY", "TREASURER")
                         .requestMatchers("/api/members/*/suspend", "/api/members/*/activate")
                         .hasAnyRole("CHAIRPERSON", "SECRETARY", "TREASURER")
+                        .requestMatchers("/api/members/*/delete").hasRole("CHAIRPERSON")
                         .requestMatchers("/api/loans/*/approve", "/api/loans/*/reject")
                         .hasAnyRole("CHAIRPERSON", "TREASURER")
                         .requestMatchers("/api/reports/admin/**")
@@ -87,17 +77,14 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/dashboard/**",
                                 "/api/contributions/**",
-                                "/api/loans/apply",
-                                "/api/loans/my/**",
+                                "/api/loans/**",
                                 "/api/members/profile/**",
-                                "/api/mpesa/**",
+                                "/api/mpesa/stk-push",
                                 "/api/reports/member/**"
                         ).authenticated()
                         .anyRequest().authenticated()
                 )
-                // Exception handling
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint))
-                // Stateless session
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         http.authenticationProvider(authenticationProvider());
@@ -110,27 +97,23 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOriginPatterns(List.of(
-                "http://localhost:4200", //angular
-                "http://localhost:3000", // React
-                "https://chama7v.com"     // Production
+        // IMPORTANT: Use setAllowedOriginPatterns, NOT setAllowedOrigins
+        configuration.setAllowedOriginPatterns(Arrays.asList(
+                "http://localhost:4200",
+                "http://localhost:3000",
+                "http://127.0.0.1:4200",
+                "https://*.ngrok.io",
+                "https://*.ngrok-free.app"
         ));
 
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        configuration.setAllowedHeaders(List.of(
-                "Authorization",
-                "Content-Type",
-                "Accept",
-                "Origin",
-                "X-Requested-With"
-        ));
-
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setExposedHeaders(Arrays.asList("Authorization"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
-
         return source;
     }
 }
