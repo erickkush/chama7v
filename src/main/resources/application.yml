@@ -22,7 +22,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update  # Changed from 'none' to 'update' for development
+      ddl-auto: update
     show-sql: false
     properties:
       hibernate:
@@ -32,7 +32,6 @@ spring:
         jdbc:
           time_zone: Africa/Nairobi
 
-  # Comment out liquibase if not using it
   # liquibase:
   #   change-log: classpath:db/changelog/db.changelog-master.xml
 
@@ -57,7 +56,7 @@ spring:
   cache:
     type: simple
 
-  # Disable SSL requirement for local development
+
   security:
     require-ssl: false
 
@@ -78,7 +77,7 @@ app:
   base-url: ${APP_BASE_URL:http://localhost:4200}
   name: Chama7v
 
-# M-Pesa Configuration - FIXED
+# M-Pesa Configuration
 mpesa:
   environment: sandbox  # Options: sandbox or production
 
@@ -90,17 +89,15 @@ mpesa:
     shortcode: 174379
     passkey: bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919
 
-  # Production Configuration (fill when ready for production)
+  # Production Configuration
   production:
     base-url: https://api.safaricom.co.ke
-    consumer-key: ${MPESA_PROD_CONSUMER_KEY:your-production-consumer-key}
-    consumer-secret: ${MPESA_PROD_CONSUMER_SECRET:your-production-consumer-secret}
-    shortcode: ${MPESA_PROD_SHORTCODE:your-production-shortcode}
-    passkey: ${MPESA_PROD_PASSKEY:your-production-passkey}
+    consumer-key: ${MPESA_PROD_CONSUMER_KEY:production-consumer-key}
+    consumer-secret: ${MPESA_PROD_CONSUMER_SECRET:production-consumer-secret}
+    shortcode: ${MPESA_PROD_SHORTCODE:production-shortcode}
+    passkey: ${MPESA_PROD_PASSKEY:production-passkey}
 
   # Callback URLs
-  # IMPORTANT: For local testing, use ngrok (e.g., https://abc123.ngrok.io/api/mpesa/callback)
-  # For production, use your actual domain
   callback-url: ${MPESA_CALLBACK_URL:https://tyra-inflationary-dagmar.ngrok-free.dev/api/mpesa/callback}
   timeout-url: ${MPESA_TIMEOUT_URL:https://tyra-inflationary-dagmar.ngrok-free.dev/api/mpesa/timeout}
 
@@ -114,7 +111,7 @@ rate-limit:
 logging:
   level:
     root: INFO
-    com.kuria.chama7v: DEBUG  # Changed to DEBUG for better M-Pesa troubleshooting
+    com.kuria.chama7v: DEBUG
     org.springframework.security: WARN
     org.springframework.web: WARN
     org.springframework.web.reactive.function.client: DEBUG  # For M-Pesa API calls
@@ -124,7 +121,7 @@ logging:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 
-# Management endpoints (optional - for monitoring)
+# Management endpoints
 management:
   endpoints:
     web:

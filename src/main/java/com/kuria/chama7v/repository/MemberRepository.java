@@ -48,6 +48,8 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     @Query("SELECT m FROM Member m WHERE m.deleted = false AND (m.name LIKE %:searchTerm% OR m.email LIKE %:searchTerm% OR m.memberNumber LIKE %:searchTerm%)")
     Page<Member> searchMembers(@Param("searchTerm") String searchTerm, Pageable pageable);
 
-    @Query("SELECT COALESCE(MAX(CAST(SUBSTRING(m.memberNumber, 2) AS int)), 0) FROM Member m WHERE m.memberNumber LIKE 'C%' AND m.deleted = false")
+    //@Query("SELECT COALESCE(MAX(CAST(SUBSTRING(m.memberNumber, 2) AS int)), 0) FROM Member m WHERE m.memberNumber LIKE 'C%' AND m.deleted = false")
+    //Integer findMaxMemberNumber();
+    @Query("SELECT COALESCE(MAX(CAST(SUBSTRING(m.memberNumber, 2) AS int)), 0) FROM Member m WHERE m.memberNumber LIKE 'C%'")
     Integer findMaxMemberNumber();
 }
